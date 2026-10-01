@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* "Reading room" — cool paper, ink, banker's-lamp green */
+    --background: 90 11% 96%;
+    --foreground: 214 12% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 214 12% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 12% 12%;
+    --primary: 160 34% 27%;
+    --primary-foreground: 90 20% 97%;
+    --secondary: 100 8% 92%;
+    --secondary-foreground: 214 12% 16%;
+    --muted: 100 8% 93%;
+    --muted-foreground: 212 6% 42%;
+    --accent: 150 18% 92%;
+    --accent-foreground: 160 34% 20%;
+    --destructive: 5 55% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 120 6% 88%;
+    --input: 120 6% 85%;
+    --ring: 160 34% 32%;
+    --radius: 0.75rem;
+
+    --state-focus: 160 34% 30%;
+    --state-break: 43 63% 44%;
+    --state-phone: 5 42% 52%;
+    --state-other: 210 25% 50%;
+    --state-idle: 135 5% 80%;
+  }
+
+  .dark {
+    --background: 150 8% 7%;
+    --foreground: 140 6% 90%;
+    --card: 150 8% 10%;
+    --card-foreground: 140 6% 90%;
+    --popover: 150 8% 10%;
+    --popover-foreground: 140 6% 90%;
+    --primary: 156 32% 58%;
+    --primary-foreground: 150 30% 8%;
+    --secondary: 150 6% 15%;
+    --secondary-foreground: 140 6% 90%;
+    --muted: 150 6% 14%;
+    --muted-foreground: 150 4% 60%;
+    --accent: 156 20% 16%;
+    --accent-foreground: 156 32% 75%;
+    --destructive: 5 55% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 7% 17%;
+    --input: 150 7% 20%;
+    --ring: 156 32% 58%;
+
+    --state-focus: 156 32% 56%;
+    --state-break: 43 58% 56%;
+    --state-phone: 5 52% 63%;
+    --state-other: 210 32% 63%;
+    --state-idle: 150 5% 26%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

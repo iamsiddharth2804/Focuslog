@@ -8,6 +8,7 @@ const sans = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-sans", di
 export const metadata: Metadata = {
   title: { default: "FocusLog", template: "%s · FocusLog" },
   description: "Track your study day honestly — every focus block, break and distraction.",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
 export const viewport: Viewport = {

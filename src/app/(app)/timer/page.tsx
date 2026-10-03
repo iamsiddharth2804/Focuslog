@@ -9,6 +9,7 @@ import { DistractionButtons, FinishWithTaskButton, QuickStart } from "@/componen
 import { DayStrip } from "@/components/tracking/day-views";
 import { StateDot } from "@/components/tracking/state-dot";
 import { CycleDots } from "@/components/tracking/cycle";
+import { AlarmStatus } from "@/components/settings/alarm-settings";
 import { breakKindOf } from "@/lib/pomodoro";
 import { AreaIcon } from "@/components/area-icon";
 import { PageHeader } from "@/components/common/page";
@@ -145,6 +146,7 @@ function RunningTimer() {
         <DistractionButtons className="justify-center" />
       </div>
       {a.paused && <p className="mt-4 text-center text-[12px] text-muted-foreground">Paused time isn&apos;t counted.</p>}
+      {countdown && <div className="mt-5"><AlarmStatus /></div>}
     </Card>
   );
 }

@@ -9,7 +9,18 @@ import { ACTIVITY_LABEL } from "@/lib/constants";
 import { breakKindOf, decodePlan, encodeBreak, nextBreak, type BreakKind, type PomodoroPlan } from "@/lib/pomodoro";
 import { useNow } from "@/hooks/use-now";
 import { useShellUser, type ShellUser } from "@/components/shell/app-shell";
-import { playChime } from "@/lib/chime";
+import {
+  DEFAULT_ALARM,
+  getAlarmPrefs,
+  notify,
+  onAlarmPrefsChange,
+  playAlarmNow,
+  scheduleAlarm,
+  stopRinging,
+  unlockAudio,
+  vibrate,
+  type AlarmPrefs,
+} from "@/lib/alarm";
 import type { StudyAreaListItem, TaskItem } from "@/lib/types";
 
 type StartInput = {
@@ -108,7 +119,9 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
   const running = !!data?.activity && !data.activity.paused;
   const ticking = !!data?.day && (data.day.status === "ACTIVE" || running);
   const deviceNow = useNow(1000, ticking);
-  const now = deviceNow + offsetRef.current;
+  // `firedAt` lets the alarm wake the UI at the exact second, even if the 1 s tick is throttled.
+  const [firedAt, setFiredAt] = useState(0);
+  const now = Math.max(deviceNow, firedAt) + offsetRef.current;
   const serverNowIso = () => new Date(Date.now() + offsetRef.current).toISOString();
 
   const daySeconds = data?.day ? sumSeconds(activeIntervals(data.day.startedAt, null, data.day.pauses, now)) : 0;
@@ -232,6 +245,74 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     [act],
   );
 
+  /* ───────── Alarm: sound, notification, vibration ───────── */
+
+  const [alarm, setAlarm] = useState<AlarmPrefs>(DEFAULT_ALARM);
+  const [audioOn, setAudioOn] = useState(false);
+  useEffect(() => {
+    setAlarm(getAlarmPrefs());
+    return onAlarmPrefsChange(() => setAlarm(getAlarmPrefs()));
+  }, []);
+  // Browsers unlock audio on the first interaction; any click also silences a ringing alarm.
+  useEffect(() => {
+    const onGesture = () => {
+      stopRinging();
+      void unlockAudio().then((ok) => ok && setAudioOn(true));
+    };
+    window.addEventListener("pointerdown", onGesture, true);
+    window.addEventListener("keydown", onGesture, true);
+    return () => {
+      window.removeEventListener("pointerdown", onGesture, true);
+      window.removeEventListener("keydown", onGesture, true);
+    };
+  }, []);
+
+  // Latest values for callbacks that fire later (alarm, background tab).
+  const latest = useRef({ alarm, user, plan, cycleCompleted });
+  latest.current = { alarm, user, plan, cycleCompleted };
+  const announcedRef = useRef<string | null>(null);
+  const ringingForRef = useRef<string | null>(null);
+
+  /** Sound + vibration + notification for a block that just hit zero — exactly once per block. */
+  const announce = useCallback((cur: NonNullable<TrackerState["activity"]>) => {
+    const key = cur.id.startsWith("pending") ? `p:${cur.startedAt}` : cur.id;
+    if (announcedRef.current === key) return;
+    announcedRef.current = key;
+    const { alarm: a, user: u, plan: p, cycleCompleted: done } = latest.current;
+    if (ringingForRef.current !== key) playAlarmNow(a); // not pre-scheduled (audio was locked) — ring now
+    if (a.vibrate) vibrate();
+    if (a.notify && document.visibilityState !== "visible") {
+      if (cur.type === "FOCUS") {
+        const nbk = nextBreak(done + 1, p);
+        const len = `${nbk.minutes} min ${nbk.kind === "long" ? "long break" : "break"}`;
+        void notify("Focus complete 🎉", u.autoStartBreaks ? `Your ${len} has started.` : `Time for a ${len}.`);
+      } else {
+        const back = shownRef.current?.lastFocus?.areaName;
+        void notify(breakKindOf(cur.mode) === "long" ? "Long break's over" : "Break's over", `${u.autoStartFocus ? "Next" : "Ready for"} ${p.focus} min focus${back ? ` · ${back}` : ""}.`);
+      }
+    }
+  }, []);
+
+  // Pre-schedule the running block's alarm on the audio clock; reschedule on pause/resume/switch.
+  const cur = data?.activity;
+  const pauseKey = cur ? cur.pauses.map((x) => `${x.pausedAt}-${x.resumedAt}`).join("|") : "";
+  useEffect(() => {
+    if (!cur?.plannedSeconds || cur.paused) return;
+    const nowMs = Date.now() + offsetRef.current;
+    const usedMs = activeIntervals(cur.startedAt, null, cur.pauses, nowMs).reduce((t, i) => t + (i.end - i.start), 0);
+    const leftSec = (cur.plannedSeconds * 1000 - usedMs) / 1000;
+    if (leftSec <= 0) return;
+    const key = cur.id.startsWith("pending") ? `p:${cur.startedAt}` : cur.id;
+    const snapshot = cur;
+    const cancel = scheduleAlarm(leftSec, alarm, () => {
+      ringingForRef.current = key;
+      setFiredAt(Date.now());
+      announce(snapshot);
+    });
+    return () => cancel?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur?.id, cur?.paused, cur?.plannedSeconds, cur?.startedAt, pauseKey, alarm, audioOn, announce]);
+
   // Pomodoro reached zero in this tab: chime, close it at the server, and (if enabled in
   // Settings) roll straight into the next break / focus. The server also finalizes on its
   // own on the next read, so a closed tab never loses a session.
@@ -240,11 +321,11 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     if (!actId || actId.startsWith("pending") || remainingSeconds === null || remainingSeconds > 0) return;
     if (completingRef.current === actId) return;
     completingRef.current = actId;
-    const cur = shownRef.current?.activity;
-    if (!cur) return;
-    playChime();
-    const isFocus = cur.type === "FOCUS";
-    const willChain = isFocus ? user.autoStartBreaks : !!breakKindOf(cur.mode) && user.autoStartFocus;
+    const done = shownRef.current?.activity;
+    if (!done) return;
+    announce(done);
+    const isFocus = done.type === "FOCUS";
+    const willChain = isFocus ? user.autoStartBreaks : !!breakKindOf(done.mode) && user.autoStartFocus;
     void act(
       (s, at) => {
         if (!willChain) return { ...s, activity: null };
@@ -266,7 +347,7 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
         toast.success(`Focus complete 🎉 ${after.minutes} min ${after.kind === "long" ? "long " : ""}break started.`);
       } else toast.success(`Break's over — next ${plan.focus} min focus started.`);
     });
-  }, [actId, remainingSeconds, act, user.autoStartBreaks, user.autoStartFocus, cycleCompleted, plan]);
+  }, [actId, remainingSeconds, act, user.autoStartBreaks, user.autoStartFocus, cycleCompleted, plan, announce]);
 
   // Live tab title.
   useEffect(() => {

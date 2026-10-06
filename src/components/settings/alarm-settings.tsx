@@ -11,6 +11,7 @@ import {
   notificationPermission,
   onAlarmPrefsChange,
   playAlarmNow,
+  prefsFor,
   requestNotifications,
   setAlarmPrefs,
   SOUND_LABEL,
@@ -64,7 +65,7 @@ export function AlarmSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="mb-2 text-[13px] font-medium">Sound when a timer ends</p>
+        <p className="mb-2 text-[13px] font-medium">Sound when a focus session ends</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Alarm sound">
           {(Object.keys(SOUND_LABEL) as AlarmSound[]).map((s) => {
             const Icon = SOUND_ICON[s];
@@ -86,6 +87,32 @@ export function AlarmSettings() {
           })}
         </div>
         <p className="mt-2 text-[12px] text-muted-foreground">Tap a sound to hear it.</p>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[13px] font-medium">Sound when a break ends</p>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Break end sound">
+          {(["same", "buzzer", "bell", "chime", "off"] as const).map((s) => {
+            const on = prefs.breakSound === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => {
+                  const merged = setAlarmPrefs({ breakSound: s });
+                  const play = s === "same" ? merged.sound : s;
+                  if (play !== "off") playAlarmNow({ ...merged, sound: play }, { preview: true });
+                }}
+                className={cn("h-8 rounded-lg border px-3 text-[13px]", on ? "border-primary bg-accent font-medium" : "hover:bg-muted")}
+              >
+                {s === "same" ? `Same (${SOUND_LABEL[prefs.sound]})` : SOUND_LABEL[s]}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[12px] text-muted-foreground">Pick a different sound to know by ear whether it&apos;s time to rest or time to get back to it.</p>
       </div>
 
       <div className={cn("grid gap-5 sm:grid-cols-2", prefs.sound === "off" && "pointer-events-none opacity-50")}>
@@ -188,8 +215,8 @@ function Row({ title, hint, checked, onChange, disabled, icon: Icon }: { title: 
 }
 
 /** One line under the timer: which alarm will sound, with quick access to notifications. */
-export function AlarmStatus() {
-  const prefs = useAlarmPrefs();
+export function AlarmStatus({ blockType = "FOCUS" }: { blockType?: string }) {
+  const prefs = prefsFor(useAlarmPrefs(), blockType);
   const [perm, setPerm] = useState<ReturnType<typeof notificationPermission>>("default");
   useEffect(() => setPerm(notificationPermission()), []);
   const Icon = prefs.sound === "off" ? VolumeX : SOUND_ICON[prefs.sound];

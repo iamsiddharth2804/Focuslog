@@ -14,9 +14,18 @@
 
 export type AlarmSound = "buzzer" | "bell" | "chime" | "off";
 export type AlarmLength = "short" | "medium" | "long";
-export type AlarmPrefs = { sound: AlarmSound; volume: number; length: AlarmLength; notify: boolean; vibrate: boolean };
+export type AlarmPrefs = {
+  /** Sound when a focus session ends. */
+  sound: AlarmSound;
+  /** Sound when a break ends — "same" uses `sound`. A different one tells you by ear which timer finished. */
+  breakSound: AlarmSound | "same";
+  volume: number;
+  length: AlarmLength;
+  notify: boolean;
+  vibrate: boolean;
+};
 
-export const DEFAULT_ALARM: AlarmPrefs = { sound: "buzzer", volume: 0.8, length: "medium", notify: false, vibrate: true };
+export const DEFAULT_ALARM: AlarmPrefs = { sound: "buzzer", breakSound: "same", volume: 0.8, length: "medium", notify: false, vibrate: true };
 export const SOUND_LABEL: Record<AlarmSound, string> = { buzzer: "Buzzer", bell: "Bell", chime: "Chime", off: "Off" };
 export const LENGTH_LABEL: Record<AlarmLength, string> = { short: "Short · ~2 s", medium: "Medium · ~5 s", long: "Long · ~12 s" };
 const RINGS: Record<AlarmLength, number> = { short: 1, medium: 3, long: 7 };
@@ -35,6 +44,7 @@ export function getAlarmPrefs(): AlarmPrefs {
     p.volume = Math.min(1, Math.max(0, Number(p.volume) || 0));
     if (!(p.sound in SOUND_LABEL)) p.sound = DEFAULT_ALARM.sound;
     if (!(p.length in RINGS)) p.length = DEFAULT_ALARM.length;
+    if (p.breakSound !== "same" && !(p.breakSound in SOUND_LABEL)) p.breakSound = "same";
     return p;
   } catch {
     return DEFAULT_ALARM;
@@ -60,6 +70,12 @@ export function onAlarmPrefsChange(cb: () => void) {
     window.removeEventListener(EVENT, cb);
     window.removeEventListener("storage", storage);
   };
+}
+
+/** The prefs to ring with for a given block: breaks may use their own sound. */
+export function prefsFor(prefs: AlarmPrefs, blockType: string): AlarmPrefs {
+  if (blockType === "FOCUS" || prefs.breakSound === "same") return prefs;
+  return { ...prefs, sound: prefs.breakSound };
 }
 
 /* ───────── Audio ───────── */

@@ -146,7 +146,7 @@ function RunningTimer() {
         <DistractionButtons className="justify-center" />
       </div>
       {a.paused && <p className="mt-4 text-center text-[12px] text-muted-foreground">Paused time isn&apos;t counted.</p>}
-      {countdown && <div className="mt-5"><AlarmStatus /></div>}
+      {countdown && <div className="mt-5"><AlarmStatus blockType={a.type} /></div>}
     </Card>
   );
 }

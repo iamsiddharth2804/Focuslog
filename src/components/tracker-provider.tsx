@@ -15,6 +15,7 @@ import {
   notify,
   onAlarmPrefsChange,
   playAlarmNow,
+  prefsFor,
   scheduleAlarm,
   stopRinging,
   unlockAudio,
@@ -279,7 +280,7 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     if (announcedRef.current === key) return;
     announcedRef.current = key;
     const { alarm: a, user: u, plan: p, cycleCompleted: done } = latest.current;
-    if (ringingForRef.current !== key) playAlarmNow(a); // not pre-scheduled (audio was locked) — ring now
+    if (ringingForRef.current !== key) playAlarmNow(prefsFor(a, cur.type)); // not pre-scheduled (audio was locked) — ring now
     if (a.vibrate) vibrate();
     if (a.notify && document.visibilityState !== "visible") {
       if (cur.type === "FOCUS") {
@@ -304,14 +305,14 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     if (leftSec <= 0) return;
     const key = cur.id.startsWith("pending") ? `p:${cur.startedAt}` : cur.id;
     const snapshot = cur;
-    const cancel = scheduleAlarm(leftSec, alarm, () => {
+    const cancel = scheduleAlarm(leftSec, prefsFor(alarm, cur.type), () => {
       ringingForRef.current = key;
       setFiredAt(Date.now());
       announce(snapshot);
     });
     return () => cancel?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cur?.id, cur?.paused, cur?.plannedSeconds, cur?.startedAt, pauseKey, alarm, audioOn, announce]);
+  }, [cur?.id, cur?.type, cur?.paused, cur?.plannedSeconds, cur?.startedAt, pauseKey, alarm, audioOn, announce]);
 
   // Pomodoro reached zero in this tab: chime, close it at the server, and (if enabled in
   // Settings) roll straight into the next break / focus. The server also finalizes on its

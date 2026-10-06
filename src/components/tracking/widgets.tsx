@@ -48,7 +48,7 @@ export function SessionCard({ day }: { day?: DayAnalytics }) {
         <p className="text-[13px] text-muted-foreground">Today&apos;s session</p>
         <p className="mt-2 text-[22px] font-semibold tracking-tight">Ready when you are.</p>
         <p className="mt-1 max-w-md text-[14px] text-muted-foreground">
-          Start the day when you sit down. Everything after that — study, breaks, your phone — is measured against it.
+          Start the day when you sit down. Everything after that — focus, breaks, your phone — is measured against it.
         </p>
         <form
           className="mt-5 flex flex-col gap-2 sm:flex-row"
@@ -57,11 +57,23 @@ export function SessionCard({ day }: { day?: DayAnalytics }) {
             void t.startDay(label || undefined);
           }}
         >
-          <Input placeholder="Where are you? e.g. Library" value={label} onChange={(e) => setLabel(e.target.value)} className="sm:max-w-xs" maxLength={60} aria-label="Session name" />
+          <Input placeholder="Name this session (optional)" value={label} onChange={(e) => setLabel(e.target.value)} className="sm:max-w-xs" maxLength={60} aria-label="Session name" />
           <Button size="lg" disabled={t.busy} className="sm:h-10">
             <Play /> Start day
           </Button>
         </form>
+        <div className="mt-2.5 flex flex-wrap gap-1.5" aria-label="Quick session names">
+          {SESSION_PLACES.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setLabel(label === p ? "" : p)}
+              className={cn("rounded-full border px-2.5 py-0.5 text-[12px] transition-colors", label === p ? "border-primary bg-accent text-foreground" : "text-muted-foreground hover:bg-muted")}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
       </Card>
     );
   }
@@ -121,6 +133,9 @@ export function SessionCard({ day }: { day?: DayAnalytics }) {
 }
 
 /* ───────── Current activity ───────── */
+
+/** Quick picks for the session name — a suggestion, not a list to choose from. */
+const SESSION_PLACES = ["Home", "Library", "College", "School", "Coaching", "Office", "Café", "Online class"];
 
 export function CurrentActivityCard() {
   const t = useTracker();

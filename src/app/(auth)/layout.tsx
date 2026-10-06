@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Logo />
         <div className="max-w-md">
           <p className="text-[34px] font-semibold leading-[1.1] tracking-tight">
-            Six hours in the library.
+            Six hours at your desk.
             <br />
             <span className="text-muted-foreground">Here is where they went.</span>
           </p>

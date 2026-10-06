@@ -5,7 +5,7 @@ import type { z } from "zod";
 import { db } from "@/db";
 import { activitySessions, dailySessions, goals, reflections, studyAreas, tasks, users, type User } from "@/db/schema";
 import { badRequest, notFound } from "@/lib/api";
-import { AREA_COLORS, AREA_ICONS } from "@/lib/constants";
+import { AREA_COLORS, AREA_ICONS, guessIcon } from "@/lib/constants";
 import { formatTimeInTz, isValidTimeZone, localDateKey } from "@/lib/time";
 import type { onboardingSchema, reflectionSchema, settingsSchema } from "@/lib/validation";
 import { setGoal } from "./goals";
@@ -29,7 +29,7 @@ export async function completeOnboarding(user: User, input: z.infer<typeof onboa
         userId: user.id,
         name: a.name,
         color: a.color ?? AREA_COLORS[i % AREA_COLORS.length]!,
-        icon: a.icon ?? AREA_ICONS[i % AREA_ICONS.length]!,
+        icon: a.icon && (AREA_ICONS as readonly string[]).includes(a.icon) ? a.icon : guessIcon(a.name),
       })),
     );
   }

@@ -1,5 +1,6 @@
 import {
-  BookOpen, Brain, Briefcase, Calculator, Code, FlaskConical, Globe, GraduationCap, Languages, Music, Palette, PenTool,
+  Atom, BookOpen, Brain, Briefcase, Calculator, Code, Dna, Dumbbell, FlaskConical, Globe, GraduationCap, Landmark, Languages, Music,
+  Palette, PenTool, Scale, Sigma, Stethoscope, Target,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,13 +18,21 @@ const ICONS: Record<string, LucideIcon> = {
   palette: Palette,
   briefcase: Briefcase,
   "graduation-cap": GraduationCap,
+  target: Target,
+  sigma: Sigma,
+  atom: Atom,
+  dna: Dna,
+  stethoscope: Stethoscope,
+  scale: Scale,
+  landmark: Landmark,
+  dumbbell: Dumbbell,
 };
 
 export function iconFor(name?: string | null): LucideIcon {
   return (name && ICONS[name]) || BookOpen;
 }
 
-/** A study area's icon on a softly tinted square in its own color. */
+/** An area's icon on a softly tinted square in its own color. */
 export function AreaIcon({ icon, color, className, size = "md" }: { icon?: string | null; color?: string | null; className?: string; size?: "sm" | "md" | "lg" }) {
   const Icon = iconFor(icon);
   const c = color ?? "#596273";

@@ -157,7 +157,7 @@ export default function StudyAreaPage({ params }: { params: Promise<{ id: string
               ))}
             </div>
             {!area.tasks.length ? (
-              <EmptyState icon={ListTodo} title="No tasks yet" body="Break this subject into concrete pieces — Two Pointer, Sliding Window, Binary Search…" action={<Button size="sm" onClick={() => setTaskDialog({ open: true })}><Plus /> Add a task</Button>} className="py-9" />
+              <EmptyState icon={ListTodo} title="No tasks yet" body="Break it into concrete pieces — chapters, topics, units, practice sets or milestones." action={<Button size="sm" onClick={() => setTaskDialog({ open: true })}><Plus /> Add a task</Button>} className="py-9" />
             ) : !shown.length ? (
               <p className="py-8 text-center text-[13px] text-muted-foreground">{filter === "open" ? "Everything here is done. 🎉" : "Nothing to show."}</p>
             ) : (
@@ -361,7 +361,7 @@ function TaskDialog({ open, task, areaId, onOpenChange, onSaved }: { open: boole
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={task ? "Edit task" : "New task"}>
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Name" htmlFor="t-name"><Input id="t-name" value={form.name} onChange={set("name")} placeholder="Two Pointer" autoFocus maxLength={200} /></Field>
+          <Field label="Name" htmlFor="t-name"><Input id="t-name" value={form.name} onChange={set("name")} placeholder="e.g. Chapter 4, Unit test, Scales practice" autoFocus maxLength={200} /></Field>
           <Field label="Description" htmlFor="t-desc"><Textarea id="t-desc" value={form.description} onChange={set("description")} rows={2} placeholder="Optional" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Status" htmlFor="t-status">
@@ -450,7 +450,7 @@ function ResourceDialog({ open, resource, areaId, tasks, onOpenChange, onSaved }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={resource ? "Edit resource" : "Add resource"}>
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Title" htmlFor="r-title"><Input id="r-title" value={form.title} onChange={set("title")} placeholder="Striver A2Z DSA Sheet" autoFocus maxLength={200} /></Field>
+          <Field label="Title" htmlFor="r-title"><Input id="r-title" value={form.title} onChange={set("title")} placeholder="e.g. NCERT textbook, lecture playlist, notes" autoFocus maxLength={200} /></Field>
           <Field label="URL" htmlFor="r-url"><Input id="r-url" value={form.url} onChange={set("url")} placeholder="https://…" inputMode="url" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Type" htmlFor="r-type">

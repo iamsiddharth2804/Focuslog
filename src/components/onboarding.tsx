@@ -7,11 +7,19 @@ import { toast } from "sonner";
 import { Logo } from "@/components/shell/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AREA_COLORS } from "@/lib/constants";
+import { AREA_COLORS, guessIcon } from "@/lib/constants";
 import { api, ApiClientError } from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
 
-const SUGGESTIONS = ["DSA", "Python", "JavaScript", "UI/UX", "System Design", "Maths", "English"];
+/* Starting points for every kind of learner — nobody has to pick from these; anything can be typed. */
+const SUGGESTION_GROUPS: Array<{ id: string; label: string; items: string[] }> = [
+  { id: "school", label: "School & boards", items: ["Maths", "Physics", "Chemistry", "Biology", "English", "History", "Geography", "Economics", "Accountancy", "Computer Science"] },
+  { id: "exams", label: "Competitive exams", items: ["UPSC", "NEET", "JEE", "CAT", "GATE", "SSC", "Banking", "CA", "CLAT", "GRE / GMAT", "IELTS"] },
+  { id: "college", label: "College", items: ["Semester exams", "Assignments", "Lab work", "Research / Thesis", "Projects", "Internship prep"] },
+  { id: "skills", label: "Skills & career", items: ["Programming", "Design", "Data analysis", "Marketing", "Writing", "Interview prep", "Certification"] },
+  { id: "languages", label: "Languages", items: ["English", "Hindi", "Spanish", "French", "German", "Japanese"] },
+  { id: "personal", label: "Creative & personal", items: ["Music practice", "Drawing", "Reading", "Side project", "Fitness"] },
+];
 const DAILY = [2, 4, 6, 8];
 const WEEKLY = [20, 30, 40];
 
@@ -20,6 +28,7 @@ export function Onboarding({ name }: { name: string }) {
   const [step, setStep] = useState(0);
   const [areas, setAreas] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
+  const [group, setGroup] = useState(SUGGESTION_GROUPS[0]!.id);
   const [daily, setDaily] = useState<number | "custom">(4);
   const [dailyCustom, setDailyCustom] = useState("5");
   const [weekly, setWeekly] = useState<number | "custom">(30);
@@ -41,7 +50,7 @@ export function Onboarding({ name }: { name: string }) {
     try {
       await api("/api/onboarding", {
         body: {
-          areas: areas.map((n, i) => ({ name: n, color: AREA_COLORS[i % AREA_COLORS.length] })),
+          areas: areas.map((n, i) => ({ name: n, color: AREA_COLORS[i % AREA_COLORS.length], icon: guessIcon(n) })),
           dailyGoalMinutes: Math.round(dailyHours * 60),
           weeklyGoalMinutes: Math.round(weeklyHours * 60),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -57,8 +66,8 @@ export function Onboarding({ name }: { name: string }) {
 
   const steps = [
     {
-      title: "What are you currently working on?",
-      body: "Add the subjects or areas you study. You can change these any time.",
+      title: "What are you working on?",
+      body: "Add anything you want to track — subjects, an exam, a course, a skill or a project. Type your own or pick from the ideas below. You can change these any time.",
       valid: areas.length > 0,
       content: (
         <div>
@@ -69,7 +78,7 @@ export function Onboarding({ name }: { name: string }) {
             }}
             className="flex gap-2"
           >
-            <Input autoFocus placeholder="e.g. DSA" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={80} aria-label="Study area name" />
+            <Input autoFocus placeholder="Type anything — e.g. Physics, UPSC, Guitar" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={80} aria-label="Area name" />
             <Button type="submit" variant="outline" size="icon" className="size-10 shrink-0" aria-label="Add">
               <Plus />
             </Button>
@@ -87,11 +96,24 @@ export function Onboarding({ name }: { name: string }) {
               ))}
             </ul>
           )}
-          <p className="mb-2 mt-6 text-[13px] text-muted-foreground">Suggestions</p>
+          <p className="mb-2 mt-7 text-[13px] text-muted-foreground">Need ideas? What are you preparing for?</p>
+          <div className="mb-3 flex flex-wrap gap-1.5" role="tablist" aria-label="Idea groups">
+            {SUGGESTION_GROUPS.map((g) => (
+              <button
+                key={g.id}
+                role="tab"
+                aria-selected={group === g.id}
+                onClick={() => setGroup(g.id)}
+                className={cn("shrink-0 rounded-full border px-3 py-1 text-[13px] transition-colors", group === g.id ? "border-primary bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-muted")}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap gap-2">
-            {SUGGESTIONS.filter((s) => !areas.includes(s)).map((s) => (
-              <button key={s} onClick={() => add(s)} className="rounded-lg border border-dashed px-2.5 py-1.5 text-sm text-muted-foreground hover:border-solid hover:text-foreground">
-                + {s}
+            {SUGGESTION_GROUPS.find((g) => g.id === group)!.items.filter((x) => !areas.some((a) => a.toLowerCase() === x.toLowerCase())).map((x) => (
+              <button key={x} onClick={() => add(x)} className="rounded-lg border border-dashed px-2.5 py-1.5 text-sm text-muted-foreground hover:border-solid hover:text-foreground">
+                + {x}
               </button>
             ))}
           </div>
@@ -99,7 +121,7 @@ export function Onboarding({ name }: { name: string }) {
       ),
     },
     {
-      title: "What is your daily study goal?",
+      title: "How many hours a day do you want to put in?",
       body: "Counted only from real focus sessions — not from having the app open.",
       valid: dailyHours >= 0.25 && dailyHours <= 24,
       content: (

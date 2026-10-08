@@ -8,7 +8,11 @@ const sans = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-sans", di
 export const metadata: Metadata = {
   title: { default: "FocusLog", template: "%s · FocusLog" },
   description: "Track your study day honestly — every focus block, break and distraction.",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  applicationName: "FocusLog",
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192" }], apple: "/icons/apple-touch-icon.png" },
+  // iPhone "Add to Home Screen": open full-screen with its own name.
+  appleWebApp: { capable: true, title: "FocusLog", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

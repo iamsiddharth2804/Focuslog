@@ -18,6 +18,7 @@ import type { PublicUser } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 import { PLAN_LIMITS, PRESETS, samePlan, sanitizePlan } from "@/lib/pomodoro";
 import { AlarmSettings } from "@/components/settings/alarm-settings";
+import { InstallApp } from "@/components/install-app";
 
 type SettingsResp = { user: PublicUser; settings: { dailyGoalMinutes: number | null } };
 
@@ -35,6 +36,9 @@ export default function SettingsPage() {
         <div className="space-y-4"><Skeleton className="h-64 rounded-xl" /><Skeleton className="h-56 rounded-xl" /></div>
       ) : (
         <div className="space-y-4">
+          <Section id="install" title="Install the app" description="Use FocusLog like a phone or desktop app — free, straight from your browser.">
+            <InstallApp />
+          </Section>
           <ProfileSection data={data} onSaved={(d) => mutate(d, false)} />
           <PomodoroSection data={data} onSaved={(d) => mutate(d, false)} />
           <Section id="sound" title="Sound & alerts" description="How FocusLog tells you a focus session or break is over — so you don't have to keep checking.">

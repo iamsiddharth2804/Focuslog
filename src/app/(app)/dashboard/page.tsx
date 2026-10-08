@@ -12,6 +12,7 @@ import { EmptyState, ErrorNotice, Stat } from "@/components/common/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress, Skeleton } from "@/components/ui/misc";
 import { useToday } from "@/hooks/use-today";
+import { InstallBanner } from "@/components/install-app";
 import { ACTIVITY_COLOR_VAR } from "@/lib/constants";
 import { formatDateKey, formatDuration } from "@/lib/time";
 import type { GoalsOverview } from "@/lib/types";
@@ -39,6 +40,7 @@ export default function DashboardPage() {
         </h1>
         <p className="mt-1 text-[14px] text-muted-foreground">{today ? formatDateKey(today) : "\u00a0"}</p>
       </header>
+      <InstallBanner />
 
       {error && <ErrorNotice onRetry={() => mutate()} />}
 

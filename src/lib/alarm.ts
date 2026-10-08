@@ -23,9 +23,11 @@ export type AlarmPrefs = {
   length: AlarmLength;
   notify: boolean;
   vibrate: boolean;
+  /** Stop the phone/laptop screen from going to sleep while a timer counts down. */
+  keepAwake: boolean;
 };
 
-export const DEFAULT_ALARM: AlarmPrefs = { sound: "buzzer", breakSound: "same", volume: 0.8, length: "medium", notify: false, vibrate: true };
+export const DEFAULT_ALARM: AlarmPrefs = { sound: "buzzer", breakSound: "same", volume: 0.8, length: "medium", notify: false, vibrate: true, keepAwake: true };
 export const SOUND_LABEL: Record<AlarmSound, string> = { buzzer: "Buzzer", bell: "Bell", chime: "Chime", off: "Off" };
 export const LENGTH_LABEL: Record<AlarmLength, string> = { short: "Short · ~2 s", medium: "Medium · ~5 s", long: "Long · ~12 s" };
 const RINGS: Record<AlarmLength, number> = { short: 1, medium: 3, long: 7 };

@@ -92,6 +92,18 @@ On the server, a click costs about 5 database round trips. The lock and the firs
 
 If your connection pooler rejects prepared statements, set `DB_PREPARE=false` in `.env`.
 
+### Install as an app (free, no app store)
+
+FocusLog is a Progressive Web App. On a phone or computer, people install it from the browser, and it then opens full-screen with its own icon.
+
+- **Android (Chrome):** tap **Install** on the banner, or Settings → Install the app.
+- **iPhone/iPad:** in **Safari**, tap Share → **Add to Home Screen**.
+- **Desktop (Chrome/Edge):** use the install icon in the address bar.
+
+The pieces are `src/app/manifest.ts` (name, colours, icons, shortcuts), `public/icons/`, `public/sw.js` (offline page and notification taps; data is never cached), and `src/lib/pwa.ts` (install prompt). Updates go live for installed users as soon as you deploy, with no app store review.
+
+On phones a web page can't ring while the screen is locked, so a running timer keeps the screen awake (Settings → Sound & alerts → *Keep screen on during a timer*).
+
 ### Productivity score
 
 ```

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, BellOff, BellRing, Music2, Play, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellOff, BellRing, Music2, Play, Sun, Volume2, VolumeX } from "lucide-react";
+import { wakeLockSupported } from "@/hooks/use-wake-lock";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +42,11 @@ export function useAlarmPrefs(): AlarmPrefs {
 export function AlarmSettings() {
   const prefs = useAlarmPrefs();
   const [perm, setPerm] = useState<ReturnType<typeof notificationPermission>>("default");
-  useEffect(() => setPerm(notificationPermission()), []);
+  const [awakeOk, setAwakeOk] = useState(true);
+  useEffect(() => {
+    setPerm(notificationPermission());
+    setAwakeOk(wakeLockSupported());
+  }, []);
 
   const update = (next: Partial<AlarmPrefs>, preview = false) => {
     const merged = setAlarmPrefs(next);
@@ -178,12 +183,19 @@ export function AlarmSettings() {
           icon={prefs.notify && perm === "granted" ? Bell : BellOff}
         />
         <Row title="Vibrate (phones)" hint="Buzzes your phone when a timer ends, on phones that support it." checked={prefs.vibrate} onChange={() => update({ vibrate: !prefs.vibrate })} icon={BellRing} />
+        <Row
+          title="Keep screen on during a timer"
+          hint={awakeOk ? "Stops your screen from locking while a focus or break counts down, so the alarm can ring. Turns off when you pause or the timer ends." : "Not supported in this browser."}
+          checked={prefs.keepAwake && awakeOk}
+          onChange={() => update({ keepAwake: !prefs.keepAwake })}
+          disabled={!awakeOk}
+          icon={Sun}
+        />
       </div>
 
       <p className="rounded-lg bg-muted/60 px-3 py-2.5 text-[12px] leading-relaxed text-muted-foreground">
         These settings are saved on this device, so your phone and laptop can sound different. The alarm works while FocusLog is open
-        in any tab — even in the background. Phones may silence websites when the screen locks; keep the screen on, or{" "}
-        <Link href="/timer" className="underline underline-offset-2">keep the timer open</Link> during focus.
+        — even in another tab. On phones, keep FocusLog open with the screen on (the switch above does that for you).
       </p>
     </div>
   );

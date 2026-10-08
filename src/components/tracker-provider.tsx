@@ -8,6 +8,7 @@ import { activeIntervals, formatClock, sumSeconds } from "@/lib/time";
 import { ACTIVITY_LABEL } from "@/lib/constants";
 import { breakKindOf, decodePlan, encodeBreak, nextBreak, type BreakKind, type PomodoroPlan } from "@/lib/pomodoro";
 import { useNow } from "@/hooks/use-now";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useShellUser, type ShellUser } from "@/components/shell/app-shell";
 import {
   DEFAULT_ALARM,
@@ -296,6 +297,8 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
 
   // Pre-schedule the running block's alarm on the audio clock; reschedule on pause/resume/switch.
   const cur = data?.activity;
+  // Keep the screen awake while a countdown runs, so the phone doesn't lock and silence the alarm.
+  useWakeLock(alarm.keepAwake && !!cur?.plannedSeconds && !cur.paused);
   const pauseKey = cur ? cur.pauses.map((x) => `${x.pausedAt}-${x.resumedAt}`).join("|") : "";
   useEffect(() => {
     if (!cur?.plannedSeconds || cur.paused) return;
